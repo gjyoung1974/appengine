@@ -1,6 +1,11 @@
+//peoplesvc, a CRUD RestAPI Demonstrating GORM persistence
+// curl -d '{"FirstName":"Gordon", "LastName":"Young", "City":"Gilbert"}' -H "Content-Type: application/json" -X POST http://localhost:8080/people
+
 package main
 
 import (
+	"google.golang.org/appengine"
+	"net/http"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/gin-gonic/gin"
@@ -19,25 +24,32 @@ type Person struct {
 }
 
 func main() {
-
-	// NOTE: See we’re using = to assign the global var
-	// instead of := which would assign it only in this function
 	db, err = gorm.Open("sqlite3", "./people.db")
-
-	if err != nil {
-		fmt.Println(err)
-	}
 
 	defer db.Close()
 	db.AutoMigrate(&Person{})
-	r := gin.Default()
+
+	//setup our controller
+	r := gin.Default() 
 	r.GET("/people /", GetPeople)
 	r.GET("/people /:id", GetPerson)
 	r.POST("/people", CreatePerson)
 	r.PUT("/people /:id", UpdatePerson)
 	r.DELETE("/people /:id", DeletePerson)
-	r.Run(":8080")
+
+	http.HandleFunc("/", indexHandler)
+	appengine.Main()
+	//r.Run(":8080")
+	if err != nil {
+		fmt.Println(err)
+	}
 }
+
+
+func indexHandler(w http.ResponseWriter, req *http.Request) {
+    fmt.Fprint(w, "done")
+}
+
 func DeletePerson(c *gin.Context) {
 	id := c.Params.ByName("id")
 	var person Person
@@ -84,4 +96,3 @@ func GetPeople(c *gin.Context) {
 	}
 }
 
-// curl -d '{"FirstName":"Gordon", "LastName":"Young", "City":"Gilbert"}' -H "Content-Type: application/json" -X POST http://localhost:8080/people
